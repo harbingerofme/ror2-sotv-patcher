@@ -1,7 +1,7 @@
 ﻿using Mono.Cecil;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace SotV_patcher
 {
@@ -16,6 +16,22 @@ namespace SotV_patcher
         public static string Log(this TypeReference typeRef)
         {
             return $"{typeRef.Module.Assembly.Name} : {typeRef.FullName}";
+        }
+
+        public static bool IsEqual(this IEnumerable<string> input, IEnumerable<string> comparedTo)
+        {
+            if (input == null || comparedTo == null || input.Count() != comparedTo.Count())
+            {
+                return false;
+            } 
+            for (int i = 0; i < input.Count(); i++)
+            {
+                if (input.ElementAtOrDefault(i) != comparedTo.ElementAtOrDefault(i))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
