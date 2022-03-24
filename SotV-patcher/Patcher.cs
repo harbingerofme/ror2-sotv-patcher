@@ -215,22 +215,67 @@ namespace SotV_patcher
                         /*
                         if (!scopesAdded.Contains(newRef.Module.Assembly))
                         {
-                            scopesAdded.Add(newRef.Module.Assembly);
-                            module.AssemblyReferences.Add(AssemblyNameReference.Parse(newRef.Module.Assembly.FullName));
-                        }*/
-                        Logger.Debug($"{type.Log()} : {bType.Log()} => {newRef.Log()}");
-
-                        module.ImportReference(newRef);
-                        
-                        type.BaseType = newRef;                       
-                        
-                    }
-                    else
-                    {
-                        Logger.Debug($"newRef for {bType.Log()} not found");
-                    }
-                }
+        private static TypeReference GetNewReference(TypeReference old)
+        {
+            if (old == null)
+            {
+                return null;
             }
+
+            string scope = old.Scope.Name;
+
+            if (old.FullName == "UnityEngine.Input")
+            {
+                scope = old.FullName;
+            }
+
+            if (refMapper.ContainsKey(scope))
+            {
+                var types = refMapper[scope].Modules.SelectMany((mod) => mod.GetTypes());
+                var debugTypes = types.ToList();
+                return types.FirstOrDefault((tref) => tref.FullName == old.FullName);
+            }
+
+            return null;
+        }
+
+        private static MethodReference GetNewMethodReference(MethodReference old)
+        {
+            if (old == null)
+            {
+                return null;
+            }
+
+            var newRef = GetNewReference(old.DeclaringType);
+            if (newRef != null)
+            {
+                var methods = newRef.Resolve().Methods.Where(md => 
+                    md.FullName == old.FullName &&
+                    md.ReturnType.Name == old.ReturnType.Name &&
+                    md.Parameters.Count() == old.Parameters.Count());
+
+                var pNames = old.Parameters.Select(p => p.ParameterType.Name);
+
+                return methods.FirstOrDefault(md => md.Parameters.Select(p => p.ParameterType.Name).IsEqual(pNames));
+
+            }
+            return null;
+        }
+
+        private static FieldReference GetNewFieldReference(FieldReference old)
+        {
+            if (old == null)
+            {
+                return null;
+            }
+
+            var newRef = GetNewReference(old.DeclaringType);
+            if (newRef != null)
+            {
+                var newField = newRef.Resolve().Fields.FirstOrDefault(fd => fd.Name == old.Name);
+                return newField;
+            }
+            return null;
         }
     }
 }
