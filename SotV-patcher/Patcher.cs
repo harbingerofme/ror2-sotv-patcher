@@ -34,10 +34,11 @@ namespace SotV_patcher
             Logger.Info("Loaded");
 
             ReadCache();
-            /*
-            refMapper.Add("Assembly-CSharp", "RoR2");
-            refMapper.Add("MMHOOK_Assembly-CSharp", "MMHOOK_RoR2");
-            */
+            refMapper.Add("Assembly-CSharp", AssemblyDefinition.ReadAssembly(Path.Combine(BepInEx.Paths.ManagedPath, "RoR2.dll")));
+            var mmHookPath = Directory.EnumerateFiles(BepInEx.Paths.PluginPath, "MMHOOK_RoR2.dll", SearchOption.AllDirectories).FirstOrDefault();
+            if (mmHookPath != null) {
+                refMapper.Add("MMHOOK_Assembly-CSharp", AssemblyDefinition.ReadAssembly(mmHookPath));
+            }
             refMapper.Add("UnityEngine.Networking", AssemblyDefinition.ReadAssembly(Path.Combine(BepInEx.Paths.ManagedPath, "com.unity.multiplayer-hlapi.Runtime.dll")));
             refMapper.Add("UnityEngine.Input", AssemblyDefinition.ReadAssembly(Path.Combine(BepInEx.Paths.ManagedPath, "UnityEngine.InputLegacyModule.dll")));
             GatherToBePatched();
