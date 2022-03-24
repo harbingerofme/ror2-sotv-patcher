@@ -187,13 +187,31 @@ namespace SotV_patcher
             while(Types.Count > 0)
             {
                 type = Types.Dequeue();
-                var bType = type.BaseType;
-                if (bType != null && refMapper.ContainsKey(bType.Scope.Name))
+                
+                foreach (var nestedType in type.NestedTypes)
                 {
-                    var typedefs = refMapper[bType.Scope.Name].Modules.SelectMany((mod) => mod.GetTypes());
-                    var newRef = typedefs.FirstOrDefault((tref) => tref.FullName == bType.FullName);
-                    if(newRef != null)
+                    Types.Enqueue(nestedType);
+                }
+
+                List<CustomAttribute> customAttributes = new(type.CustomAttributes);
+
+                var newBaseType = GetNewReference(type.BaseType);
+                if(newBaseType != null)
+                {
+                    newBaseType = module.ImportReference(newBaseType);
+                        
+                    type.BaseType = newBaseType;
+                }
+
+                foreach (var @interface in type.Interfaces)
+                {
+                    var newInterfaceType = GetNewReference(@interface.InterfaceType);
+                    if(newInterfaceType != null)
                     {
+                        newInterfaceType = module.ImportReference(newInterfaceType);
+                        @interface.InterfaceType = newInterfaceType;
+                    }
+                }
                         /*
                         if (!scopesAdded.Contains(newRef.Module.Assembly))
                         {
