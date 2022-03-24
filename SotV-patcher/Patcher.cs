@@ -182,10 +182,11 @@ namespace SotV_patcher
 
         private static void PatchModule(ModuleDefinition module)
         {
-            List<AssemblyDefinition> scopesAdded = new();
-            foreach (var type in module.Types)
+            Queue<TypeDefinition> Types = new(module.Types);
+            TypeDefinition type = null;
+            while(Types.Count > 0)
             {
-                //Logger.Debug($"Examing type: {type.Name} with basetype: {type.BaseType?.Log()}");
+                type = Types.Dequeue();
                 var bType = type.BaseType;
                 if (bType != null && refMapper.ContainsKey(bType.Scope.Name))
                 {
