@@ -1,4 +1,5 @@
-﻿using Mono.Cecil;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,6 +23,10 @@ namespace SotV_patcher
         private static readonly Dictionary<string, AssemblyDefinition> toPatch = new();
         private static readonly List<string> toCache = new();
 
+        private static bool disableWrite = false;
+        private static bool dumpDebugWrite = false;
+        private static bool justFuckingYeetWhenDone = false;
+
         public static void Initialize()
         {
             Logger.Info("Loaded");
@@ -42,7 +47,20 @@ namespace SotV_patcher
             {
                 Logger.Debug("Nothing to patch, all good!");
             }
-            //WriteCache();
+        }
+
+        public static void Finish()
+        {
+            if (toCache.Count() > 0) {
+                toCache.InsertRange(0, pluginsToSkip);
+                File.Delete(cachePath);
+                File.WriteAllLines(cachePath, toCache);
+            }
+
+            if(justFuckingYeetWhenDone)
+            {
+                Environment.Exit(0);
+            }
         }
         
 
@@ -112,12 +130,22 @@ namespace SotV_patcher
                 
                 int stage = 0;
                 string outName = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath)) + ".SotVPatched.dll";
+                bool deleteOut = false;
                 try
                 {
-                    assembly.Write(outName);
+                    if (!disableWrite)
+                        assembly.Write(outName);
+
+                    if (dumpDebugWrite)
+                    {
+                        File.Delete(filePath + ".dump");
+                        assembly.Write(Path.Combine(BepInEx.Paths.PluginPath, filePath + ".dump"));
+                    }
+
                     assembly.Dispose();
                     stage++;
-                    //File.Move(filePath, filePath + ".sotvpatcher-backup");
+                    if (!disableWrite)
+                        File.Move(filePath, filePath + ".sotvpatcher-backup");
                 }
                 catch
                 {
@@ -128,8 +156,24 @@ namespace SotV_patcher
                     } else
                     {
                         Logger.Error($"Failed writing patched file \"{outName}\".");
+                        deleteOut = true;
                     }
                     throw;
+                }
+                finally
+                {
+                    if (deleteOut)
+                    {
+                        try
+                        {
+                            File.Delete(outName);
+                        }
+                        catch
+                        {
+                            Logger.Error($"Couldn't even delete the failed file!");
+                            throw;
+                        }
+                    }
                 }
             }
         }
