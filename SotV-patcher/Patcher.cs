@@ -23,6 +23,8 @@ namespace SotV_patcher
         private static readonly Dictionary<string, AssemblyDefinition> toPatch = new();
         private static readonly List<string> toCache = new();
 
+        public const int version = 1;
+
         private static bool disableWrite = false;
         private static bool dumpDebugWrite = false;
         private static bool justFuckingYeetWhenDone = false;
@@ -88,8 +90,7 @@ namespace SotV_patcher
 
         private static void GatherToBePatched()
         {
-            DateTime sotvUpdate = new(2022, 3, 1);
-            var libraries = Directory.GetFiles(BepInEx.Paths.PluginPath, "*.dll", SearchOption.AllDirectories).Where(p => { string f = Path.GetFileNameWithoutExtension(p); return !f.Contains("SotVPatched") && !f.StartsWith("MMHOOK_") && !pluginsToSkip.Contains(f) && File.GetLastWriteTime(f) < sotvUpdate; });
+            var libraries = Directory.GetFiles(BepInEx.Paths.PluginPath, "*.dll", SearchOption.AllDirectories).Where(p => { string f = Path.GetFileNameWithoutExtension(p); return !f.Contains("SotVPatched"+version) && !f.StartsWith("MMHOOK_") && !pluginsToSkip.Any(p => p== f); });
             foreach (var lib in libraries)
             {
                 var assembly = AssemblyDefinition.ReadAssembly(lib);
