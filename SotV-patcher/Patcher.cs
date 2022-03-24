@@ -212,9 +212,135 @@ namespace SotV_patcher
                         @interface.InterfaceType = newInterfaceType;
                     }
                 }
-                        /*
-                        if (!scopesAdded.Contains(newRef.Module.Assembly))
+
+                foreach (var method in type.Methods)
+                {
+                    customAttributes.AddRange(method.CustomAttributes);
+
+                    var newMethodReturnType = GetNewReference(method.ReturnType);
+                    if (newMethodReturnType != null)
+                    {
+                        newMethodReturnType = module.ImportReference(newMethodReturnType);
+                        method.ReturnType = newMethodReturnType;
+                    }
+
+
+                    foreach (var parameter in method.Parameters)
+                    {
+                        var newParameterType = GetNewReference(parameter.ParameterType);
+                        if (newParameterType != null)
                         {
+                            newParameterType = module.ImportReference(newParameterType);
+                            parameter.ParameterType = newParameterType;
+                        }
+                    }
+
+                    if (method.HasBody)
+                    {
+                        foreach (var instruction in method.Body.Instructions.Where(instruction => 
+                            instruction.OpCode == OpCodes.Call ||
+                            instruction.OpCode == OpCodes.Calli ||
+                            instruction.OpCode == OpCodes.Callvirt ||
+                            instruction.OpCode == OpCodes.Newobj ||
+                            instruction.OpCode == OpCodes.Jmp
+                            ))
+                        {
+                            if (instruction.Operand is MethodReference mRef)
+                            {
+                                var newMRef = GetNewMethodReference(mRef);
+                                if (newMRef != null)
+                                {
+                                    newMRef = module.ImportReference(newMRef);
+                                    instruction.Operand = newMRef;
+                                }
+                            }
+                        }
+
+                        foreach (var instruction in method.Body.Instructions.Where(instruction =>
+                            instruction.OpCode == OpCodes.Ldfld ||
+                            instruction.OpCode == OpCodes.Ldflda ||
+                            instruction.OpCode == OpCodes.Ldsfld ||
+                            instruction.OpCode == OpCodes.Ldsflda ||
+                            instruction.OpCode == OpCodes.Stsfld ||
+                            instruction.OpCode == OpCodes.Stfld
+                            ))
+                        {
+                            if (instruction.Operand is FieldReference fRef)
+                            {
+                                var newfRef = GetNewFieldReference(fRef);
+                                if (newfRef != null)
+                                {
+                                    newfRef = module.ImportReference(newfRef);
+                                    instruction.Operand = newfRef;
+                                }
+                            }
+                        }
+
+                        foreach (var variable in method.Body.Variables)
+                        {
+                            var newVariableType = GetNewReference(variable.VariableType);
+                            if (newVariableType != null)
+                            {
+                                newVariableType = module.ImportReference(newVariableType);
+                                variable.VariableType = newVariableType;
+                            }
+                        }
+                    }
+                }
+
+                foreach (var field in type.Fields)
+                {
+                    customAttributes.AddRange(field.CustomAttributes);
+
+                    var newFieldType = GetNewReference(field.FieldType);
+                    if (newFieldType != null)
+                    {
+                        newFieldType = module.ImportReference(newFieldType);
+                        field.FieldType = newFieldType;
+                    }
+                }
+
+                foreach (var @event in type.Events) 
+                {
+                    customAttributes.AddRange(@event.CustomAttributes);
+
+                    var newEventType = GetNewReference(@event.EventType);
+                    if (newEventType != null)
+                    {
+                        newEventType = module.ImportReference(newEventType);
+                        @event.EventType = newEventType;
+                    }
+                }
+
+                foreach (var property in type.Properties)
+                {
+                    customAttributes.AddRange(property.CustomAttributes);
+
+                    var newPropType = GetNewReference(property.PropertyType);
+                    if (newPropType != null)
+                    {
+                        newPropType = module.ImportReference(newPropType);
+                        property.PropertyType = newPropType;
+                    }
+                }
+
+                foreach (var customAttribute in customAttributes)
+                {
+                    var CAType = GetNewReference(customAttribute.AttributeType);
+                    if (CAType != null)
+                    {
+                        var newCActor = GetNewMethodReference(customAttribute.Constructor);
+                        if (newCActor != null)
+                        {
+                            newCActor = module.ImportReference(newCActor);
+                            customAttribute.Constructor = newCActor;
+                        }
+                    }
+
+                }
+            }
+        }
+
         private static TypeReference GetNewReference(TypeReference old)
         {
             if (old == null)
