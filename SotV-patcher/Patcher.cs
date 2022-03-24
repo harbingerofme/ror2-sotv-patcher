@@ -131,7 +131,7 @@ namespace SotV_patcher
 
                 
                 int stage = 0;
-                string outName = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath)) + ".SotVPatched.dll";
+                string outName = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath)) + ".SotVPatched" + version + ".dll";
                 bool deleteOut = false;
                 try
                 {
