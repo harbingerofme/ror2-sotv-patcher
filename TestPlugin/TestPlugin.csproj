@@ -8,6 +8,10 @@
     <PackageReference Include="BepInEx.Core" Version="5.4.19" />
     <PackageReference Include="Unity3D.UnityEngine" Version="2018.3.5.1" />
     <PackageReference Include="Unity3D.UnityEngine.Networking" Version="2018.3.5.1" />
+    <PackageReference Include="UnityEngine.Modules" Version="2018.4.16">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
